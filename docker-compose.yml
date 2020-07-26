@@ -1,0 +1,35 @@
+version: "3.7"
+
+services:
+
+  web:
+    build: ./web
+    container_name: ctf_web
+    restart: always
+    volumes:
+      - static_volume:/app/static
+    expose:
+      - "3000"
+    depends_on:
+      - rsa
+
+  nginx:
+    build: ./nginx
+    container_name: ctf_nginx
+    volumes:
+      - static_volume:/app/static
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+
+  rsa:
+    build: ./rsa
+    container_name: ctf_rsa
+    restart: always
+    ports:
+      - "3389:3389"
+  
+volumes:
+  static_volume:
