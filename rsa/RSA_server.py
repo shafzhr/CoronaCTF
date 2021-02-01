@@ -9,7 +9,7 @@ from Crypto.Cipher import AES
 
 import base64
 from requests import get as requests_get
-***REMOVED***
+from datetime import datetime
 
 
 t_lock = threading.Lock()
@@ -25,9 +25,9 @@ SERVER_IP = '0.0.0.0'
 
 PUB_IP = requests_get('https://api.ipify.org').text
 URL_PATHS = {1: 'http://' + PUB_IP + '/b0a01904da3d14582d58806aa7e922bc.html',
-             2: 'http://' + PUB_IP + "/8d8ee8463da0c15c33e260d0a1b8dbfe.html"***REMOVED***
+             2: 'http://' + PUB_IP + "/8d8ee8463da0c15c33e260d0a1b8dbfe.html"}
 
-progress_by_ip = {***REMOVED***
+progress_by_ip = {}
 
 
 class AESCipher(object):
@@ -40,20 +40,20 @@ class AESCipher(object):
         raw = self._pad(raw)
         iv = Random.new().read(AES.block_size)
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
-***REMOVED*** base64.b64encode(iv + cipher.encrypt(raw.encode()))
+        return base64.b64encode(iv + cipher.encrypt(raw.encode()))
 
     def decrypt(self, enc):
         enc = base64.b64decode(enc)
         iv = enc[:AES.block_size]
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
-***REMOVED*** self._unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
+        return self._unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
 
     def _pad(self, s):
-***REMOVED*** s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)
+        return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)
 
     @staticmethod
     def _unpad(s):
-***REMOVED*** s[:-ord(s[len(s) - 1:])]
+        return s[:-ord(s[len(s) - 1:])]
 
 
 def send_encrypted(cipher, sock, msg):
@@ -61,12 +61,12 @@ def send_encrypted(cipher, sock, msg):
     sock.send(str(len(data_to_send)).zfill(10).encode() + data_to_send)
 
 
-def write_to_log(file, attr, s):
+def write_to_log(filename, attr, s):
     global t_lock
     s = str(datetime.now()) + "    " + s + '\n'
     with t_lock:
-        with open(file, attr) as f:
-    ***REMOVED***
+        with open(filename, attr) as f:
+            f.write(s)
 
 
 def recv_amount(sock, size):
@@ -74,7 +74,7 @@ def recv_amount(sock, size):
     while size:
         new_bufffer = sock.recv(size)
         if not new_bufffer:
-***REMOVED*** None
+            return None
         buffer += new_bufffer
         size -= len(new_bufffer)
     return buffer
@@ -101,12 +101,12 @@ def handle_client(client_socket, addr):
         # Wait for the client to confirm.
         response = recv_amount(client_socket, 7)
         if response is None:
-***REMOVED***
+            return
         response = response.decode()
         while response != "CONFIRM":
             response = recv_amount(client_socket, 7)
             if response is None:
-    ***REMOVED***
+                return
             response = response.decode()
 
         # Continue communication by sending the public key to the client.
@@ -116,17 +116,17 @@ def handle_client(client_socket, addr):
         # receive symmetrical key
         response = recv_amount(client_socket, RSA_CIPHER_BLOCK_SIZE)
         if response is None:
-***REMOVED***
+            return
         # decrypt the symmetrical key
         cipher = PKCS1_OAEP.new(key)
         try:
             symmetrical_key = cipher.decrypt(response)
             if len(symmetrical_key) != AES_KEY_SIZE:
                 send_by_size(client_socket, "Wrong input :(".encode())
-    ***REMOVED***
+                return
         except TypeError:
             send_by_size(client_socket, "Wrong input :(".encode())
-***REMOVED***
+            return
 
         # create cipher object
         aes_cipher = AESCipher(symmetrical_key)
@@ -135,15 +135,15 @@ def handle_client(client_socket, addr):
         send_encrypted(aes_cipher, client_socket, URL_PATHS.get(2))
 
     except socket.error:
-***REMOVED***
+        return
 
     finally:
         client_socket.close()
         with t_lock:
             if addr not in progress_by_ip.keys():
-                progress_by_ip[addr] = {***REMOVED***
+                progress_by_ip[addr] = {}
                 progress_by_ip[addr][name] = max_phase
-    ***REMOVED***
+            else:
                 if name not in progress_by_ip[addr].keys():
                     progress_by_ip[addr][name] = 0
                 progress_by_ip[addr][name] = max(progress_by_ip[addr][name], max_phase)
@@ -168,7 +168,7 @@ def main(port):
         server_socket.close()
 
 
-***REMOVED***
+if __name__ == '__main__':
     if len(sys.argv) < 2:
         write_to_log(SERVER_LOG, 'a', "Invalid use. Plese give an argument for the port")
         exit()

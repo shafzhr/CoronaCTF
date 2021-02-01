@@ -18,20 +18,20 @@ class AESCipher(object):
         raw = self._pad(raw)
         iv = Random.new().read(AES.block_size)
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
-***REMOVED*** base64.b64encode(iv + cipher.encrypt(raw.encode()))
+        return base64.b64encode(iv + cipher.encrypt(raw.encode()))
 
     def decrypt(self, enc):
         enc = base64.b64decode(enc)
         iv = enc[:AES.block_size]
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
-***REMOVED*** self._unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
+        return self._unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
 
     def _pad(self, s):
-***REMOVED*** s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)
+        return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)
 
     @staticmethod
     def _unpad(s):
-***REMOVED*** s[:-ord(s[len(s) - 1:])]
+        return s[:-ord(s[len(s) - 1:])]
 
 
 def recv_amount(sock, size):
@@ -39,7 +39,7 @@ def recv_amount(sock, size):
     while size:
         new_bufffer = sock.recv(size)
         if not new_bufffer:
-***REMOVED*** None
+            return None
         buffer += new_bufffer
         size -= len(new_bufffer)
     return buffer

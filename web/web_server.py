@@ -16,7 +16,7 @@ TOKENS = ['<TOKEN>']
 BOTS = [telegram.Bot(token=token) for token in TOKENS]
 PROGRESS_ID = '<CHAT_ID_1>'
 FINISHERS_ID = '<CHAT_ID_2>'
-CHAT_IDS = [PROGRESS_ID, FINISHERS_ID] #'1009007776',
+CHAT_IDS = [PROGRESS_ID, FINISHERS_ID]
 
 # http
 LOG_FILE_NAME = 'winners.log'
